@@ -17,6 +17,7 @@ export const tasks = Array.from({ length: 100 }, () => {
   return {
     id: `TASK-${faker.number.int({ min: 1000, max: 9999 })}`,
     title: faker.lorem.sentence({ min: 5, max: 15 }),
+    assigne: faker.person.fullName(),
     status: faker.helpers.arrayElement(statuses),
     label: faker.helpers.arrayElement(labels),
     priority: faker.helpers.arrayElement(priorities),

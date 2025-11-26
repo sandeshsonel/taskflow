@@ -1,155 +1,202 @@
 import { useEffect, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { deleteVideoById, getAllVideos } from '@/services/videoService'
-import { Loader, Loader2, Trash2, VideoOff } from 'lucide-react'
-import moment from 'moment'
-import { toast } from 'sonner'
+import { getRouteApi } from '@tanstack/react-router'
+import {
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardTitle } from '@/components/ui/card'
-import { VideoDialog } from '@/components/video-dialog'
+import { useTableUrlState } from '@/hooks/use-table-url-state'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import { priorities, statuses } from '../data/data'
+import { type Task } from '../data/schema'
+import { DataTableBulkActions } from './data-table-bulk-actions'
+import { tasksColumns as columns } from './tasks-columns'
 
-// const statusStyles = {
-//   safe: 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400',
-//   flagged: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400',
-//   processing:
-//     'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400',
-//   completed:
-//     'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400',
-// } as const
+const route = getRouteApi('/_authenticated/admin/tasks/')
 
-export function TasksTable() {
+type DataTableProps = {
+  data: Task[]
+}
+
+export function TasksTable({ data }: DataTableProps) {
   // Local UI-only states
-  const queryClient = useQueryClient()
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['all-videos'], // unique key for caching
-    queryFn: getAllVideos, // function that fetches the data
-    retry: 1, // optional: retry once on failure
-    enabled: false,
+  const [rowSelection, setRowSelection] = useState({})
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+
+  // Local state management for table (uncomment to use local-only state, not synced with URL)
+  // const [globalFilter, onGlobalFilterChange] = useState('')
+  // const [columnFilters, onColumnFiltersChange] = useState<ColumnFiltersState>([])
+  // const [pagination, onPaginationChange] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
+
+  // Synced with URL states (updated to match route search schema defaults)
+  const {
+    globalFilter,
+    onGlobalFilterChange,
+    columnFilters,
+    onColumnFiltersChange,
+    pagination,
+    onPaginationChange,
+    ensurePageInRange,
+  } = useTableUrlState({
+    search: route.useSearch(),
+    navigate: route.useNavigate(),
+    pagination: { defaultPage: 1, defaultPageSize: 10 },
+    globalFilter: { enabled: true, key: 'filter' },
+    columnFilters: [
+      { columnId: 'status', searchKey: 'status', type: 'array' },
+      { columnId: 'priority', searchKey: 'priority', type: 'array' },
+    ],
   })
-  const mutation = useMutation({
-    mutationFn: deleteVideoById,
-    onSuccess: (data, id) => handleSuccess(data, id),
-    onError: (_, id) => {
-      toast.error('Error deleting video')
-      setDeletingIds((prev) => {
-        const updated = new Set(prev)
-        updated.delete(id)
-        return updated
-      })
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      sorting,
+      columnVisibility,
+      rowSelection,
+      columnFilters,
+      globalFilter,
+      pagination,
     },
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
+    onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
+    globalFilterFn: (row, _columnId, filterValue) => {
+      const id = String(row.getValue('id')).toLowerCase()
+      const title = String(row.getValue('title')).toLowerCase()
+      const searchValue = String(filterValue).toLowerCase()
+
+      return id.includes(searchValue) || title.includes(searchValue)
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    onPaginationChange,
+    onGlobalFilterChange,
+    onColumnFiltersChange,
   })
-  const [currentOpenVideo, setCurrentOpenVideo] = useState<any | null>(null)
-  const [deletingIds, setDeletingIds] = useState(new Set())
 
-  const handleSuccess = (data: any, deleteVideoId: string) => {
-    queryClient.setQueryData(['all-videos'], (oldData: any) => {
-      return {
-        ...oldData,
-        videos: data.videos,
-      }
-    })
-    setDeletingIds((prev) => {
-      const updated = new Set(prev)
-      updated.delete(deleteVideoId)
-      return updated
-    })
-  }
-
-  const handleDeleteVideo = async (e: React.MouseEvent, videoId: string) => {
-    e.stopPropagation()
-    if (mutation.isPending) return
-    setDeletingIds((prev) => new Set(prev).add(videoId))
-    mutation.mutate(videoId)
-  }
-
+  const pageCount = table.getPageCount()
   useEffect(() => {
-    refetch()
-  }, [])
+    ensurePageInRange(pageCount)
+  }, [pageCount, ensurePageInRange])
 
   return (
-    <>
-      <div
-        className={cn(
-          'max-sm:has-[div[role="toolbar"]]:mb-16', // Add margin bottom to the table on mobile when the toolbar is visible
-          'flex flex-1 flex-col gap-4'
-        )}
-      >
-        {isFetching ? (
-          <div className='flex items-center justify-center'>
-            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-            <p>Loading videos...</p>
-          </div>
-        ) : !isFetching && !data?.videos?.length ? (
-           <div className="flex flex-col items-center justify-center py-16 text-center">
-      <VideoOff className="w-10 h-10 text-muted-foreground" />
-      <p className="mt-4 text-base font-medium">No videos found</p>
-    </div>
-        ) : (
-          <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-            {data?.videos?.map((video: any, idx: number) => (
-              <Card
-                key={idx}
-                className='flex flex-col overflow-hidden py-0 transition-shadow hover:shadow-md'
-                onClick={() => setCurrentOpenVideo(video)}
-              >
-                <AspectRatio ratio={16 / 9} className='bg-muted'>
-                  <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className='h-full w-full object-cover'
-                  />
-                </AspectRatio>
-
-                <CardContent className='flex flex-1 flex-col p-4'>
-                  <CardTitle className='mb-1.5 flex-1 text-base'>
-                    {video.originalName}
-                  </CardTitle>
-                  <p className='text-muted-foreground mb-3 text-sm'>
-                    {video.createdAt
-                      ? moment(video.createdAt).format('MMMM Do, YYYY')
-                      : '-'}
-                  </p>
-                  <div className='flex items-center justify-between'>
-                    <Badge
+    <div
+      className={cn(
+        'max-sm:has-[div[role="toolbar"]]:mb-16', // Add margin bottom to the table on mobile when the toolbar is visible
+        'flex flex-1 flex-col gap-4'
+      )}
+    >
+      <DataTableToolbar
+        table={table}
+        searchPlaceholder='Filter by title or ID...'
+        filters={[
+          {
+            columnId: 'status',
+            title: 'Status',
+            options: statuses,
+          },
+          {
+            columnId: 'priority',
+            title: 'Priority',
+            options: priorities,
+          },
+          {
+            columnId: 'assignee',
+            title: 'Assignee',
+            options: []
+          }
+        ]}
+      />
+      <div className='overflow-hidden rounded-md border'>
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
+                      colSpan={header.colSpan}
                       className={cn(
-                        'flex items-center gap-1 self-start rounded-full px-2.5 py-1 text-xs font-medium'
-                        // video.status && statusStyles[video.status]
+                        header.column.columnDef.meta?.className,
+                        header.column.columnDef.meta?.thClassName
                       )}
                     >
-                      {video.status === 'safe' && '✔️ Safe'}
-                      {video.status === 'flagged' && '🚩 Flagged'}
-                      {video.status === 'processing' && '⏳ Processing'}
-                      {video.status === 'completed' && '✅ Completed'}
-                    </Badge>
-
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      onClick={(e) => handleDeleteVideo(e, video._id)}
-                      disabled={deletingIds.has(video.id)}
-                    >
-                      {deletingIds.has(video.id) ? <Loader /> : <Trash2 />}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
             ))}
-          </div>
-        )}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        cell.column.columnDef.meta?.className,
+                        cell.column.columnDef.meta?.tdClassName
+                      )}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className='h-24 text-center'
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
-      {currentOpenVideo && (
-        <VideoDialog
-          videoId={currentOpenVideo._id}
-          mimeType={currentOpenVideo.mimeType}
-          title={currentOpenVideo?.originalName ?? ''}
-          open={!!currentOpenVideo}
-          source={currentOpenVideo}
-          onOpenChange={() => setCurrentOpenVideo(null)}
-        />
-      )}
-    </>
+      <DataTablePagination table={table} className='mt-auto' />
+      <DataTableBulkActions table={table} />
+    </div>
   )
 }

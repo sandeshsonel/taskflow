@@ -111,7 +111,7 @@ export function TasksMutateDrawer({
                     onValueChange={field.onChange}
                     placeholder='Select dropdown'
                     items={[
-                      { label: 'Processing', value: 'in progress' },
+                      { label: 'In Progress', value: 'in progress' },
                       { label: 'Backlog', value: 'backlog' },
                       { label: 'Todo', value: 'todo' },
                       { label: 'Canceled', value: 'canceled' },

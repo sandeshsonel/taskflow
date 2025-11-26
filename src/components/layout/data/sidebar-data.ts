@@ -1,5 +1,4 @@
-import { LayoutDashboard, ListChecks, Settings } from 'lucide-react'
-import { Users } from '@/features/users'
+import { LayoutDashboard, ListChecks, Settings, Users } from 'lucide-react'
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
@@ -9,22 +8,22 @@ export const sidebarData: SidebarData = {
       items: [
         {
           title: 'Dashboard',
-          url: '/',
+          url: '/admin/dashboard',
           icon: LayoutDashboard,
         },
         {
           title: 'Tasks',
-          url: '/tasks',
+          url: '/admin/tasks',
           icon: ListChecks,
         },
         {
           title: 'Users',
-          url: '/users',
+          url: '/admin/users',
           icon: Users,
         },
         {
           title: 'Settings',
-          url: '/settings',
+          url: '/admin/settings',
           icon: Settings,
         },
       ],

@@ -60,6 +60,16 @@ export const tasksColumns: ColumnDef<Task>[] = [
     },
   },
   {
+    accessorKey: 'assignee',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Assignee To' />
+    ),
+    meta: { className: 'ps-1', tdClassName: 'ps-4' },
+    cell: ({ row }) => {
+      return <div>{row.getValue('assignee')}</div>
+    },
+  },
+  {
     accessorKey: 'status',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Status' />

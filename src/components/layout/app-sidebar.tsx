@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Play } from 'lucide-react'
+import { CircleCheckBig } from 'lucide-react'
 import { useLayout } from '@/context/layout-provider'
 import {
   Sidebar,
@@ -16,11 +16,11 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
       <SidebarHeader>
-        <Link to='/' className='flex items-center space-x-2 ml-2 mb-2'>
-          <div className='flex items-center justify-center w-8 h-8 rounded-md dark:bg-white bg-black'>
-          <Play size={18} className='dark:text-black text-white' />
+        <Link to='/admin/dashboard' className='flex items-center space-x-2 ml-2 mb-2'>
+          <div className='flex items-center justify-center w-8 h-8 rounded-sm dark:bg-white bg-black'>
+            <CircleCheckBig  size={18} className='dark:text-black text-white'/>
           </div>
-          <div className='font-medium'>Video Platform</div>
+          <div className='font-medium'>TaskFlow</div>
         </Link>
       </SidebarHeader>
       <SidebarContent>

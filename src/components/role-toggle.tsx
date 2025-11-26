@@ -39,9 +39,9 @@ function SegmentButton({
     variant={selected ? "ghost" : "outline"}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 rounded-md border px-6 py-3 transition-all w-auto",
+        "flex flex-1 items-center gap-2 rounded-md border px-6 py-3 transition-all w-full",
         selected
-          ? "border-gray-400 bg-gray-50"
+          ? "border-black bg-gray-50"
           : "border-gray-300 bg-white hover:bg-gray-50"
       )}
     >
