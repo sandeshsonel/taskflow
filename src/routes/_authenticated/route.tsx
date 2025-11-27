@@ -13,6 +13,8 @@ export const Route = createFileRoute('/_authenticated')({
     // You can add authentication checks or data fetching here
     const token: string | null = store.getState().auth.token
 
+    return context
+
     if (!token) {
       throw redirect({ to: '/sign-in' })
     } else {

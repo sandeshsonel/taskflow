@@ -22,7 +22,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { roles } from '../data/data'
 import { type User } from '../data/schema'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { usersColumns as columns } from './users-columns'
@@ -113,11 +112,6 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
               { label: 'Invited', value: 'invited' },
               { label: 'Suspended', value: 'suspended' },
             ],
-          },
-          {
-            columnId: 'role',
-            title: 'Role',
-            options: roles.map((role) => ({ ...role })),
           },
         ]}
       />
