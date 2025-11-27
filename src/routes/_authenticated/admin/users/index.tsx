@@ -6,14 +6,9 @@ const usersSearchSchema = z.object({
   page: z.number().optional().catch(1),
   pageSize: z.number().optional().catch(10),
   // Facet filters
-  status: z
+  role: z
     .array(
-      z.union([
-        z.literal('active'),
-        z.literal('inactive'),
-        z.literal('invited'),
-        z.literal('suspended'),
-      ])
+      z.union([z.literal('admin'), z.literal('editor'), z.literal('viewer')])
     )
     .optional()
     .catch([]),

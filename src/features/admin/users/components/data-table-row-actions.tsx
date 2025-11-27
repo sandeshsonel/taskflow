@@ -19,6 +19,7 @@ type DataTableRowActionsProps = {
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const { setOpen, setCurrentRow } = useUsers()
+
   return (
     <>
       <DropdownMenu modal={false}>

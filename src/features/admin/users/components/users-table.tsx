@@ -56,8 +56,7 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
     globalFilter: { enabled: false },
     columnFilters: [
       // username per-column text filter
-      { columnId: 'username', searchKey: 'username', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
+      { columnId: 'fullName', searchKey: 'fullName', type: 'string' },
       { columnId: 'role', searchKey: 'role', type: 'array' },
     ],
   })
@@ -101,16 +100,15 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
       <DataTableToolbar
         table={table}
         searchPlaceholder='Filter users...'
-        searchKey='username'
+        searchKey='fullName'
         filters={[
           {
-            columnId: 'status',
-            title: 'Status',
+            columnId: 'role',
+            title: 'Role',
             options: [
-              { label: 'Active', value: 'active' },
-              { label: 'Inactive', value: 'inactive' },
-              { label: 'Invited', value: 'invited' },
-              { label: 'Suspended', value: 'suspended' },
+              { label: 'Admin', value: 'admin' },
+              { label: 'Editor', value: 'editor' },
+              { label: 'Viewer', value: 'viewer' },
             ],
           },
         ]}
