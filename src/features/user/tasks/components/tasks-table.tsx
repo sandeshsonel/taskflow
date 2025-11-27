@@ -27,7 +27,9 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { priorities, statuses } from '../data/data'
 import { type Task } from '../data/schema'
+import { DataTableBulkActions } from './data-table-bulk-actions'
 import { tasksColumns as columns } from './tasks-columns'
+import { useTasks } from './tasks-provider'
 
 const route = getRouteApi('/_authenticated/')
 
@@ -37,6 +39,8 @@ type DataTableProps = {
 
 export function TasksTable({ data }: DataTableProps) {
   // Local UI-only states
+  const { setOpen } = useTasks()
+
   const [rowSelection, setRowSelection] = useState({})
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -134,7 +138,7 @@ export function TasksTable({ data }: DataTableProps) {
             },
           ]}
         />
-        <Button>
+        <Button onClick={() => setOpen('create')}>
           <Plus />
           <span>Add New Task</span>
         </Button>
@@ -203,7 +207,7 @@ export function TasksTable({ data }: DataTableProps) {
         </Table>
       </div>
       <DataTablePagination table={table} className='mt-auto' />
-      {/* <DataTableBulkActions table={table} /> */}
+      <DataTableBulkActions table={table} />
     </div>
   )
 }

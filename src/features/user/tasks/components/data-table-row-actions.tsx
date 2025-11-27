@@ -41,33 +41,6 @@ export function DataTableRowActions<TData>({
         >
           Edit
         </DropdownMenuItem>
-        {/* <DropdownMenuItem disabled>Make a copy</DropdownMenuItem> */}
-        {/* <DropdownMenuItem disabled>Favorite</DropdownMenuItem> */}
-        {/* <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup value={task.label}>
-              {labels.map((label) => (
-                <DropdownMenuRadioItem key={label.value} value={label.value}>
-                  {label.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub> */}
-        {/* <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() => {
-            setCurrentRow(task)
-            setOpen('delete')
-          }}
-        >
-          Delete
-          <DropdownMenuShortcut>
-            <Trash2 size={16} />
-          </DropdownMenuShortcut>
-        </DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -32,9 +32,15 @@ export const signInUser = async (data: SignInUserPayload) => {
   }
 }
 
-export const signUpWithGoogle = async (idToken: string) => {
+export const signUpWithGoogle = async ({
+  idToken,
+  role,
+}: {
+  idToken: string
+  role: string
+}) => {
   try {
-    const response = await api.post('/api/v1/signup/google', { idToken })
+    const response = await api.post('/api/v1/signup/google', { idToken, role })
     return response.data
   } catch (error: any) {
     toast.error(error.response.data.error)

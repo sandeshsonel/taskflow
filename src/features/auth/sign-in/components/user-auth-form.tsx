@@ -65,9 +65,11 @@ export function UserAuthForm({
       token: user.token,
       user: user.user,
     }
+
+    console.log({ userDetails })
     dispatch(setUserDetails(userDetails))
     toast.success('Signed up successfully!')
-    navigate({ to: '/' })
+    navigate({ to: user.role === 'admin' ? '/admin/dashboard' : '/' })
   }
 
   const handleSuccess = (user: any) => {

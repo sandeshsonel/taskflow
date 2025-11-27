@@ -1,6 +1,10 @@
+import { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { getProfileDetails } from '@/services/userService'
 import { store } from '@/store'
-import { logout } from '@/store/slices/authSlice'
+import { logout, updateUserDetails } from '@/store/slices/authSlice'
+import { useDispatch } from 'react-redux'
 import { decodeJwt } from '@/lib/utils'
 
 type JwtPayload = {
@@ -8,22 +12,41 @@ type JwtPayload = {
   role?: string
 }
 
+function RootComponent() {
+  const { data } = useQuery({
+    queryKey: ['profile-details'],
+    queryFn: getProfileDetails,
+    staleTime: 1000 * 60 * 1, // 1 minutes
+  })
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    if (data?.success && data?.data) {
+      dispatch(updateUserDetails(data.data))
+    }
+  }, [data])
+
+  return (
+    <>
+      <Outlet />
+    </>
+  )
+}
+
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async (context) => {
-    // You can add authentication checks or data fetching here
     const token: string | null = store.getState().auth.token
-
-    return context
+    const userRole = store.getState().auth.user?.role
 
     if (!token) {
       throw redirect({ to: '/sign-in' })
     } else {
       const payload = decodeJwt(token) as JwtPayload | null
+
       if (!payload || payload.exp * 1000 < Date.now()) {
         store.dispatch(logout())
         throw redirect({ to: '/sign-in', replace: true })
       } else {
-        const userRole = payload.role
         if (userRole === 'admin') {
           const redirectHomePath = ['/', '/admin']
           if (redirectHomePath.includes(context.location.pathname)) {
@@ -38,5 +61,5 @@ export const Route = createFileRoute('/_authenticated')({
 
     return context
   },
-  component: Outlet,
+  component: RootComponent,
 })

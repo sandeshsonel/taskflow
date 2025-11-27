@@ -11,6 +11,7 @@ interface User {
   email: string
   fullName?: string
   photoURL?: string
+  role: 'admin' | 'user'
 }
 
 interface AuthState {

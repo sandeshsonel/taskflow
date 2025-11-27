@@ -44,8 +44,7 @@ const formSchema = z
     path: ['confirmPassword'],
   })
 
-
-  type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<typeof formSchema>
 
 export function SignUpForm({
   className,
@@ -103,7 +102,7 @@ export function SignUpForm({
     try {
       const result = await signInWithPopup(googleAuthConfig, googleProvider)
       const idToken = await result.user.getIdToken(true)
-      mutationGoogle.mutate(idToken)
+      mutationGoogle.mutate({ idToken, role: form.getValues('role') })
     } catch (error) {
       console.error('Google sign-up error:', error)
     }
@@ -169,21 +168,18 @@ export function SignUpForm({
           )}
         />
         <FormField
-  control={form.control}
-  name="role"
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Register as</FormLabel>
-      <FormControl>
-        <RoleToggle
-          value={field.value}
-          onChange={field.onChange}
+          control={form.control}
+          name='role'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Register as</FormLabel>
+              <FormControl>
+                <RoleToggle value={field.value} onChange={field.onChange} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </FormControl>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
         <Button className='mt-2' disabled={mutation.isPending}>
           Create Account
         </Button>
