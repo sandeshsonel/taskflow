@@ -18,3 +18,9 @@ export interface AdminUserPayload {
   password: string
   confirmPassword: string
 }
+
+export interface AdminUserUpdatePayload {
+  firstName: string
+  lastName: string
+  role: string
+}

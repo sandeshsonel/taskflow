@@ -1,4 +1,4 @@
-import { type AdminUserPayload } from '@/types'
+import { type AdminUserUpdatePayload, type AdminUserPayload } from '@/types'
 import { toast } from 'sonner'
 import { api } from './api'
 
@@ -22,9 +22,15 @@ export const createUserService = async (payload: AdminUserPayload) => {
   }
 }
 
-export const updateUserService = async (payload: AdminUserPayload) => {
+export const updateUserService = async (
+  userId: string,
+  payload: AdminUserUpdatePayload
+) => {
   try {
-    const response = await api.post('/api/v1/admin/users', payload)
+    const response = await api.patch(
+      `/api/v1/admin/users?userId=${userId}`,
+      payload
+    )
     return response.data
   } catch (error: any) {
     toast.error(error.response.data.message)

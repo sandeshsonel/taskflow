@@ -5,7 +5,9 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
-import { createUserService } from '@/services/adminUser'
+import { createUserService, updateUserService } from '@/services/adminUser'
+import { type AdminUserPayload, type AdminUserUpdatePayload } from '@/types'
+import _ from 'lodash'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -42,9 +44,9 @@ const formSchema = z
     isEdit: z.boolean(),
   })
   .refine(
-    (data) => {
-      if (data.isEdit && !data.password) return true
-      return data.password.length > 0
+    ({ isEdit, password }) => {
+      if (isEdit) return true
+      return password.length > 0
     },
     {
       message: 'Password is required.',
@@ -53,7 +55,7 @@ const formSchema = z
   )
   .refine(
     ({ isEdit, password }) => {
-      if (isEdit && !password) return true
+      if (isEdit) return true
       return password.length >= 8
     },
     {
@@ -63,7 +65,7 @@ const formSchema = z
   )
   .refine(
     ({ isEdit, password }) => {
-      if (isEdit && !password) return true
+      if (isEdit) return true
       return /[a-z]/.test(password)
     },
     {
@@ -73,7 +75,7 @@ const formSchema = z
   )
   .refine(
     ({ isEdit, password }) => {
-      if (isEdit && !password) return true
+      if (isEdit) return true
       return /\d/.test(password)
     },
     {
@@ -83,7 +85,7 @@ const formSchema = z
   )
   .refine(
     ({ isEdit, password, confirmPassword }) => {
-      if (isEdit && !password) return true
+      if (isEdit) return true
       return password === confirmPassword
     },
     {
@@ -100,25 +102,40 @@ type UserActionDialogProps = {
   onOpenChange: (open: boolean) => void
 }
 
+type MutationInput =
+  | { isEdit: true; userId: string; payload: AdminUserUpdatePayload }
+  | { isEdit: false; payload: AdminUserPayload }
+
 export function UsersActionDialog({
   currentRow,
   open,
   onOpenChange,
 }: UserActionDialogProps) {
+  const isEdit = !!currentRow
+
   const mutation = useMutation({
-    mutationFn: createUserService,
+    mutationFn: async (input: MutationInput) => {
+      if (input.isEdit) {
+        return updateUserService(input.userId, input.payload)
+      }
+      return createUserService(input.payload)
+    },
     onSuccess: () => handleSuccess(),
     onError: () => {},
   })
   const router = useRouter()
   const { queryClient } = router.options.context
-  const isEdit = !!currentRow
 
   const form = useForm<UserForm>({
     resolver: zodResolver(formSchema),
     defaultValues: isEdit
       ? {
-          ...currentRow,
+          firstName: currentRow!.firstName,
+          lastName: currentRow!.lastName,
+          email: currentRow!.email,
+          role: currentRow!.role,
+          password: '',
+          confirmPassword: '',
           isEdit,
         }
       : {
@@ -136,8 +153,20 @@ export function UsersActionDialog({
 
   const onSubmit = (values: UserForm) => {
     if (!mutation.isPending) {
-      const { isEdit, ...payload } = values
-      mutation.mutate(payload)
+      const { isEdit, ...rest } = values
+      if (isEdit) {
+        const updatePayload = _.omit(rest, [
+          'password',
+          'confirmPassword',
+        ]) as AdminUserUpdatePayload
+        mutation.mutate({
+          isEdit,
+          userId: currentRow!._id,
+          payload: updatePayload,
+        })
+      } else {
+        mutation.mutate({ isEdit: false, payload: rest as AdminUserPayload })
+      }
     }
   }
 
@@ -210,10 +239,13 @@ export function UsersActionDialog({
                 <FormField
                   control={form.control}
                   name='email'
+                  disabled={isEdit}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email</FormLabel>
-                      <FormControl>
+                      <FormControl
+                        className={isEdit ? 'bg-gray-300 text-black' : ''}
+                      >
                         <Input placeholder='john.doe@gmail.com' {...field} />
                       </FormControl>
                       <FormMessage />
@@ -241,39 +273,43 @@ export function UsersActionDialog({
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name='password'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <PasswordInput
-                          placeholder='e.g., S3cur3P@ssw0rd'
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='confirmPassword'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
-                      <FormControl>
-                        <PasswordInput
-                          disabled={!isPasswordTouched}
-                          placeholder='e.g., S3cur3P@ssw0rd'
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!isEdit && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name='password'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <PasswordInput
+                              placeholder='e.g., S3cur3P@ssw0rd'
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='confirmPassword'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Confirm Password</FormLabel>
+                          <FormControl>
+                            <PasswordInput
+                              disabled={!isPasswordTouched}
+                              placeholder='e.g., S3cur3P@ssw0rd'
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
               </div>
             </form>
           </Form>
@@ -281,7 +317,7 @@ export function UsersActionDialog({
         <DialogFooter>
           <Button type='submit' form='user-form' disabled={mutation.isPending}>
             {mutation.isPending && <Spinner />}
-            Save changes
+            {isEdit ? 'Update User' : 'Create User'}
           </Button>
         </DialogFooter>
       </DialogContent>
