@@ -45,6 +45,7 @@ export const Route = createFileRoute('/_authenticated')({
 
       if (!payload || payload.exp * 1000 < Date.now()) {
         store.dispatch(logout())
+        localStorage.clear()
         throw redirect({ to: '/sign-in', replace: true })
       } else {
         if (userRole === 'admin') {

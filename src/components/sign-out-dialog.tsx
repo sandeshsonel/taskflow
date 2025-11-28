@@ -15,6 +15,7 @@ export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
 
   const handleSignOut = () => {
     dispatch(logout())
+    localStorage.clear()
     const currentPath = location.href
     navigate({
       to: '/sign-in',
