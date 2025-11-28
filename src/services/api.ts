@@ -1,8 +1,12 @@
 import axios from 'axios'
 import { store } from '@/store/index'
 
+const URL = import.meta.env.PROD
+  ? import.meta.env.VITE_API_URL_PROD
+  : import.meta.env.VITE_API_URL
+
 export const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: URL.replace('/api/v1', ''),
   headers: { 'Content-Type': 'application/json' },
 })
 

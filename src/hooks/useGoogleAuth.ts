@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { useMutation } from '@tanstack/react-query'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API = import.meta.env.VITE_API_URL
 
 interface AuthResponse {
   user: {
