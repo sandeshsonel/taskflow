@@ -6,7 +6,12 @@ type HeaderProps = React.HTMLAttributes<HTMLElement> & {
   ref?: React.Ref<HTMLElement>
 }
 
-export function UserHeader({ className, fixed, children, ...props }: HeaderProps) {
+export function UserHeader({
+  className,
+  fixed,
+  children,
+  ...props
+}: HeaderProps) {
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {

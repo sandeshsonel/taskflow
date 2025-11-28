@@ -24,3 +24,17 @@ export interface AdminUserUpdatePayload {
   lastName: string
   role: string
 }
+
+export interface NotificationUpdatePayload {
+  notificationId: string
+  actionType: string
+  actionData: any
+}
+
+export interface TaskPayload {
+  title: string
+  description: string
+  status: string
+  priority: string
+  assignTo: string
+}

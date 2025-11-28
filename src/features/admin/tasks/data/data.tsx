@@ -2,12 +2,10 @@ import {
   ArrowDown,
   ArrowRight,
   ArrowUp,
-  Circle,
   CheckCircle,
   AlertCircle,
   Timer,
   HelpCircle,
-  CircleOff,
 } from 'lucide-react'
 
 export const labels = [
@@ -27,14 +25,9 @@ export const labels = [
 
 export const statuses = [
   {
-    label: 'Backlog',
-    value: 'backlog' as const,
+    label: 'Pending',
+    value: 'pending' as const,
     icon: HelpCircle,
-  },
-  {
-    label: 'Todo',
-    value: 'todo' as const,
-    icon: Circle,
   },
   {
     label: 'In Progress',
@@ -42,14 +35,9 @@ export const statuses = [
     icon: Timer,
   },
   {
-    label: 'Done',
-    value: 'done' as const,
+    label: 'Completed',
+    value: 'completed' as const,
     icon: CheckCircle,
-  },
-  {
-    label: 'Canceled',
-    value: 'canceled' as const,
-    icon: CircleOff,
   },
 ]
 

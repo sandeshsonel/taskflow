@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { getRouteApi } from '@tanstack/react-router'
+import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useLocation, useNavigate } from '@tanstack/react-router'
 import {
   type SortingState,
   type VisibilityState,
@@ -12,6 +13,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { getAdminUsers } from '@/services/adminUser'
+import { type RootState } from '@/store'
+import { useSelector } from 'react-redux'
 import { cn } from '@/lib/utils'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
 import {
@@ -28,17 +32,26 @@ import { type Task } from '../data/schema'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { tasksColumns as columns } from './tasks-columns'
 
-const route = getRouteApi('/_authenticated/admin/tasks/')
-
 type DataTableProps = {
   data: Task[]
 }
 
 export function TasksTable({ data }: DataTableProps) {
   // Local UI-only states
+  const { search } = useLocation()
+  const navigate =
+    useNavigate() as unknown as import('@/hooks/use-table-url-state').NavigateFn
+  const page = Number(search?.page ?? '1')
+
   const [rowSelection, setRowSelection] = useState({})
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const userDetails = useSelector((state: RootState) => state.auth.user)
+
+  const { data: adminUsers } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: getAdminUsers,
+  })
 
   // Local state management for table (uncomment to use local-only state, not synced with URL)
   // const [globalFilter, onGlobalFilterChange] = useState('')
@@ -55,9 +68,9 @@ export function TasksTable({ data }: DataTableProps) {
     onPaginationChange,
     ensurePageInRange,
   } = useTableUrlState({
-    search: route.useSearch(),
-    navigate: route.useNavigate(),
-    pagination: { defaultPage: 1, defaultPageSize: 10 },
+    search,
+    navigate,
+    pagination: { defaultPage: page, defaultPageSize: 10 },
     globalFilter: { enabled: true, key: 'filter' },
     columnFilters: [
       { columnId: 'status', searchKey: 'status', type: 'array' },
@@ -65,9 +78,22 @@ export function TasksTable({ data }: DataTableProps) {
     ],
   })
 
+  const tableData = useMemo(() => {
+    return (
+      data?.map?.((dItem) => {
+        const assignToDetails =
+          adminUsers?.find?.((user: any) => user._id === dItem.assignTo) ?? {}
+        return {
+          ...dItem,
+          assignToDetails,
+        }
+      }) ?? []
+    )
+  }, [adminUsers, data])
+
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
     state: {
       sorting,
@@ -82,11 +108,10 @@ export function TasksTable({ data }: DataTableProps) {
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
     globalFilterFn: (row, _columnId, filterValue) => {
-      const id = String(row.getValue('id')).toLowerCase()
       const title = String(row.getValue('title')).toLowerCase()
       const searchValue = String(filterValue).toLowerCase()
 
-      return id.includes(searchValue) || title.includes(searchValue)
+      return title.toLowerCase().includes(searchValue.toLowerCase())
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -100,9 +125,21 @@ export function TasksTable({ data }: DataTableProps) {
   })
 
   const pageCount = table.getPageCount()
+
+  const assineeOptions = useMemo(
+    () =>
+      adminUsers?.map?.((assignee: any) => ({
+        label: `${assignee.firstName} ${assignee.lastName}`,
+        value: assignee._id,
+      })) ?? [],
+    [adminUsers]
+  )
+
   useEffect(() => {
     ensurePageInRange(pageCount)
   }, [pageCount, ensurePageInRange])
+
+  console.log({ pagination })
 
   return (
     <div
@@ -113,7 +150,8 @@ export function TasksTable({ data }: DataTableProps) {
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='Filter by title or ID...'
+        searchPlaceholder='Filter by title'
+        searchKey='title'
         filters={[
           {
             columnId: 'status',
@@ -125,11 +163,15 @@ export function TasksTable({ data }: DataTableProps) {
             title: 'Priority',
             options: priorities,
           },
-          {
-            columnId: 'assignee',
-            title: 'Assignee',
-            options: []
-          }
+          ...(userDetails?.role === 'admin'
+            ? [
+                {
+                  columnId: 'assignee',
+                  title: 'Assignee',
+                  options: assineeOptions,
+                },
+              ]
+            : []),
         ]}
       />
       <div className='overflow-hidden rounded-md border'>

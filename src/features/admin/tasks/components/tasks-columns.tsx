@@ -1,73 +1,52 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { labels, priorities, statuses } from '../data/data'
+import { priorities, statuses } from '../data/data'
 import { type Task } from '../data/schema'
 import { DataTableRowActions } from './data-table-row-actions'
 
 export const tasksColumns: ColumnDef<Task>[] = [
   {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label='Select all'
-        className='translate-y-[2px]'
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label='Select row'
-        className='translate-y-[2px]'
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'id',
+    accessorKey: 'title',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Task' />
     ),
-    cell: ({ row }) => <div className='w-[80px]'>{row.getValue('id')}</div>,
+    cell: ({ row }) => <div className='w-[80px]'>{row.getValue('title')}</div>,
     enableSorting: false,
     enableHiding: false,
   },
   {
-    accessorKey: 'title',
+    accessorKey: 'description',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Title' />
+      <DataTableColumnHeader column={column} title='Description' />
     ),
-    meta: { className: 'ps-1', tdClassName: 'ps-4' },
-    cell: ({ row }) => {
-      const label = labels.find((label) => label.value === row.original.label)
-
-      return (
-        <div className='flex space-x-2'>
-          {label && <Badge variant='outline'>{label.label}</Badge>}
-          <span className='max-w-32 truncate font-medium sm:max-w-72 md:max-w-[31rem]'>
-            {row.getValue('title')}
-          </span>
-        </div>
-      )
-    },
+    cell: ({ row }) => (
+      <div className='w-[120px] overflow-hidden text-ellipsis whitespace-nowrap'>
+        {row.getValue('description')}
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
   },
   {
-    accessorKey: 'assignee',
+    accessorKey: 'assignTo',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Assignee To' />
     ),
     meta: { className: 'ps-1', tdClassName: 'ps-4' },
     cell: ({ row }) => {
-      return <div>{row.getValue('assignee')}</div>
+      const assignToDetails = (row.original as any).assignToDetails
+
+      if (assignToDetails) {
+        return (
+          <span>
+            {assignToDetails.firstName + ' ' + assignToDetails.lastName}
+          </span>
+        )
+      }
+      return '-'
     },
+    enableSorting: false,
+    enableHiding: false,
   },
   {
     accessorKey: 'status',
@@ -96,6 +75,7 @@ export const tasksColumns: ColumnDef<Task>[] = [
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))
     },
+    enableHiding: false,
   },
   {
     accessorKey: 'priority',
@@ -124,6 +104,7 @@ export const tasksColumns: ColumnDef<Task>[] = [
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))
     },
+    enableHiding: false,
   },
   {
     id: 'actions',

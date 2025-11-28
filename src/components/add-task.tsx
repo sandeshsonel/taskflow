@@ -1,8 +1,16 @@
+import { useMemo } from 'react'
 import z from 'zod'
 import { format } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { showSubmittedData } from '@/lib/show-submitted-data'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useRouter } from '@tanstack/react-router'
+import { getAdminUsers } from '@/services/adminUser'
+import { createTaskService, updateTaskService } from '@/services/taskService'
+import { type RootState } from '@/store'
+import { type TaskPayload } from '@/types'
+import _ from 'lodash'
+import { useSelector } from 'react-redux'
 import {
   Form,
   FormControl,
@@ -24,15 +32,27 @@ import {
 import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
 
-const formSchema = z.object({
-  title: z.string().min(1, 'Title is required.').max(50),
-  description: z.string().min(1, 'Description is required.').max(200),
-  status: z.enum(['pending', 'in-progress', 'completed']),
-  priority: z.enum(['low', 'medium', 'high']),
-  assignTo: z.string().min(1, 'Please select a user to assign the task to.'),
-  createdAt: z.string(),
-  isEdit: z.boolean(),
-})
+const formSchema = z
+  .object({
+    title: z.string().min(1, 'Title is required.').max(50),
+    description: z.string().min(1, 'Description is required.').max(200),
+    status: z.enum(['pending', 'in-progress', 'completed']),
+    priority: z.enum(['low', 'medium', 'high']),
+    assignTo: z.string(),
+    createdAt: z.string(),
+    isEdit: z.boolean(),
+    isAdmin: z.boolean(),
+  })
+  .refine(
+    ({ isAdmin, assignTo }) => {
+      if (!isAdmin) return true
+      return assignTo.length > 0
+    },
+    {
+      message: 'Please select a user to assign the task to.',
+      path: ['assignTo'],
+    }
+  )
 
 type UserForm = z.infer<typeof formSchema>
 
@@ -42,8 +62,33 @@ type PropTypes = {
   currentRow: Task | null
 }
 
+type MutationInput =
+  | { isEdit: true; taskId: string; payload: TaskPayload }
+  | { isEdit: false; payload: TaskPayload }
+
 const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
+  const router = useRouter()
+  const userDetails = useSelector((state: RootState) => state.auth?.user)
   const isEdit = open === 'update'
+  const isAdmin = userDetails?.role === 'admin'
+
+  const { queryClient } = router.options.context
+
+  const mutation = useMutation({
+    mutationFn: async (input: MutationInput) => {
+      if (input.isEdit) {
+        return updateTaskService(input.taskId, input.payload)
+      }
+      return createTaskService(input.payload)
+    },
+    onSuccess: () => handleSuccess(),
+    onError: () => {},
+  })
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: getAdminUsers,
+  })
 
   const form = useForm<UserForm>({
     resolver: zodResolver(formSchema),
@@ -51,6 +96,7 @@ const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
       ? {
           ...currentRow,
           isEdit,
+          isAdmin,
           status:
             currentRow?.status === 'pending' ||
             currentRow?.status === 'in-progress' ||
@@ -65,13 +111,12 @@ const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
               : 'low',
           createdAt:
             typeof currentRow?.createdAt === 'string'
-              ? currentRow.createdAt
-              : currentRow?.createdAt
-                ? format(new Date(currentRow.createdAt), 'MMMM dd, yyyy')
-                : format(new Date(), 'MMMM dd, yyyy'),
+              ? format(new Date(currentRow.createdAt), 'MMMM dd, yyyy')
+              : format(new Date(), 'MMMM dd, yyyy'),
         }
       : {
           isEdit,
+          isAdmin,
           title: '',
           description: '',
           status: 'pending',
@@ -82,15 +127,44 @@ const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
   })
 
   const onSubmit = (values: UserForm) => {
-    form.reset()
-    showSubmittedData(values)
-    setOpen(null)
+    if (!mutation.isPending) {
+      const { isEdit, ...rest } = values
+      const updatePayload: TaskPayload = _.omit(rest, [
+        'isEdit',
+        'createdAt',
+      ]) as TaskPayload
+      if (isEdit) {
+        mutation.mutate({
+          isEdit,
+          taskId: currentRow!._id,
+          payload: updatePayload,
+        })
+      } else {
+        mutation.mutate({ isEdit: false, payload: updatePayload })
+      }
+    }
   }
+
+  const handleSuccess = () => {
+    form.reset()
+    setOpen(null)
+    queryClient.invalidateQueries({ queryKey: ['tasks'] })
+  }
+
+  const assignToOptions = useMemo(() => {
+    return (
+      data?.map?.((user: any) => ({
+        label: `${user.firstName} ${user.lastName}`,
+        value: user._id,
+      })) ?? []
+    )
+  }, [data])
+
   return (
     <Dialog
       open={!!open}
       onOpenChange={() => {
-        // form.reset()
+        form.reset()
         setOpen(null)
       }}
     >
@@ -185,23 +259,26 @@ const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
                 />
               </div>
               <div className='grid w-full grid-cols-2 items-start gap-3'>
-                <FormField
-                  control={form.control}
-                  name='assignTo'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Assign To</FormLabel>
-                      <SelectDropdown
-                        className='w-full'
-                        defaultValue={field.value}
-                        onValueChange={field.onChange}
-                        placeholder='Select dropdown'
-                        items={[]}
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {isAdmin && (
+                  <FormField
+                    control={form.control}
+                    name='assignTo'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Assign To</FormLabel>
+                        <SelectDropdown
+                          disabled={isLoading}
+                          className='w-full'
+                          defaultValue={field.value}
+                          onValueChange={field.onChange}
+                          placeholder='Select dropdown'
+                          items={assignToOptions}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <FormField
                   control={form.control}
                   name='createdAt'
@@ -223,8 +300,18 @@ const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
           </Form>
         </div>
         <DialogFooter>
+          <Button
+            type='button'
+            onClick={() => {
+              form.reset()
+              setOpen(null)
+            }}
+            variant='outline'
+          >
+            Cancel
+          </Button>
           <Button type='submit' form='user-form'>
-            Save changes
+            {isEdit ? 'Update' : 'Create'}
           </Button>
         </DialogFooter>
       </DialogContent>

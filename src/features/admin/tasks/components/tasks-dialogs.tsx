@@ -1,10 +1,29 @@
-import { showSubmittedData } from '@/lib/show-submitted-data'
+import { useMutation } from '@tanstack/react-query'
+import { useRouter } from '@tanstack/react-router'
+import { deleteTaskService } from '@/services/taskService'
 import AddEditTask from '@/components/add-task'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { useTasks } from './tasks-provider'
 
 export function TasksDialogs() {
   const { open, setOpen, currentRow, setCurrentRow } = useTasks()
+
+  const router = useRouter()
+  const { queryClient } = router.options.context
+  const { mutate, isPending } = useMutation({
+    mutationFn: deleteTaskService,
+    onSuccess: () => {
+      setOpen(null)
+      setCurrentRow(null)
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    },
+  })
+
+  const handleDelete = async () => {
+    if (currentRow) {
+      mutate(currentRow._id)
+    }
+  }
 
   return (
     <>
@@ -25,25 +44,19 @@ export function TasksDialogs() {
               }, 500)
             }}
             handleConfirm={() => {
-              setOpen(null)
-              setTimeout(() => {
-                setCurrentRow(null)
-              }, 500)
-              showSubmittedData(
-                currentRow,
-                'The following task has been deleted:'
-              )
+              handleDelete()
             }}
             className='max-w-md'
-            title={`Delete this task: ${currentRow.id} ?`}
+            title={`Delete this task: ${currentRow._id} ?`}
             desc={
               <>
                 You are about to delete a task with the ID{' '}
-                <strong>{currentRow.id}</strong>. <br />
+                <strong>{currentRow._id}</strong>. <br />
                 This action cannot be undone.
               </>
             }
             confirmText='Delete'
+            disabled={isPending}
           />
         </>
       )}

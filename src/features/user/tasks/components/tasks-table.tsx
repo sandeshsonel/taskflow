@@ -12,7 +12,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { type RootState } from '@/store'
 import { Plus } from 'lucide-react'
+import { useSelector } from 'react-redux'
 import { cn } from '@/lib/utils'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
 import { Button } from '@/components/ui/button'
@@ -44,6 +46,7 @@ export function TasksTable({ data }: DataTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const userDetails = useSelector((state: RootState) => state.auth.user)
 
   // Local state management for table (uncomment to use local-only state, not synced with URL)
   // const [globalFilter, onGlobalFilterChange] = useState('')
@@ -131,11 +134,15 @@ export function TasksTable({ data }: DataTableProps) {
               title: 'Priority',
               options: priorities,
             },
-            {
-              columnId: 'assignee',
-              title: 'Assignee',
-              options: [],
-            },
+            ...(userDetails?.role === 'admin'
+              ? [
+                  {
+                    columnId: 'assignee',
+                    title: 'Assignee',
+                    options: [],
+                  },
+                ]
+              : []),
           ]}
         />
         <Button onClick={() => setOpen('create')}>

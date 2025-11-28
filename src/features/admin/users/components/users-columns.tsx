@@ -81,8 +81,8 @@ export const usersColumns: ColumnDef<User>[] = [
     },
     cell: ({ row }) => {
       const status = row.getValue('status')
-      if (status === 'active' || status === 'suspended') {
-        const lastLogin = row.getValue('lastLogin') as Date
+      const lastLogin = row.getValue('lastLogin') as Date
+      if ((status === 'active' || status === 'suspended') && lastLogin) {
         return (
           <div className='w-fit ps-2 text-nowrap'>
             {formatDistanceToNow(new Date(lastLogin), { addSuffix: true })}
