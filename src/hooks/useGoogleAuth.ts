@@ -28,10 +28,4 @@ export const useGoogleAuth = () =>
       })
       return res.data
     },
-    onSuccess: (data) => {
-      console.log('xoxo-success', data)
-    },
-    onError: (error) => {
-      console.log('xoxo-error', error)
-    },
   })

@@ -4,6 +4,7 @@ import {
   createSlice,
   createAsyncThunk,
   type PayloadAction,
+  type WritableDraft,
 } from '@reduxjs/toolkit'
 
 interface User {
@@ -50,7 +51,7 @@ const authSlice = createSlice({
       state.user = null
       state.token = null
     },
-    setUserDetails(state, action: PayloadAction<AuthState>) {
+    setAuthDetails(state, action: PayloadAction<AuthState>) {
       state = action.payload
       return state
     },
@@ -59,8 +60,14 @@ const authSlice = createSlice({
         state.user = { ...state.user, ...action.payload }
       }
     },
+    setUserDetails(state, action: PayloadAction<WritableDraft<User>>) {
+      if (state.user) {
+        state.user = action.payload
+      }
+    },
   },
 })
 
-export const { logout, setUserDetails, updateUserDetails } = authSlice.actions
+export const { logout, setUserDetails, setAuthDetails, updateUserDetails } =
+  authSlice.actions
 export default authSlice.reducer

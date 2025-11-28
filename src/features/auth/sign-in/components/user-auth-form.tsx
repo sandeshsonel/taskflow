@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { signInUser, signInWithGoogle } from '@/services/userService'
-import { setUserDetails } from '@/store/slices/authSlice'
+import { setAuthDetails } from '@/store/slices/authSlice'
 import { signInWithPopup } from 'firebase/auth'
 import { Loader2, LogIn } from 'lucide-react'
 import { useDispatch } from 'react-redux'
@@ -65,11 +65,11 @@ export function UserAuthForm({
       token: user.token,
       user: user.user,
     }
-
-    console.log({ userDetails })
-    dispatch(setUserDetails(userDetails))
+    dispatch(setAuthDetails(userDetails))
     toast.success('Signed up successfully!')
-    navigate({ to: user.role === 'admin' ? '/admin/dashboard' : '/' })
+    navigate({
+      to: userDetails.user.role === 'admin' ? '/admin/dashboard' : '/',
+    })
   }
 
   const handleSuccess = (user: any) => {
@@ -77,9 +77,11 @@ export function UserAuthForm({
       token: user.token,
       user: user.user,
     }
-    dispatch(setUserDetails(userDetails))
+    dispatch(setAuthDetails(userDetails))
     toast.success('Signed up successfully!')
-    navigate({ to: '/' })
+    navigate({
+      to: userDetails.user.role === 'admin' ? '/admin/dashboard' : '/',
+    })
   }
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -94,7 +96,9 @@ export function UserAuthForm({
     mutation.mutate(data)
   }
 
-  const handleSignInGoogle = async () => {
+  const handleSignInGoogle = async (e: React.MouseEvent) => {
+    const button = e.target as HTMLButtonElement
+    button.disabled = true
     try {
       const result = await signInWithPopup(googleAuthConfig, googleProvider)
       const idToken = await result.user.getIdToken(true)
@@ -102,6 +106,7 @@ export function UserAuthForm({
     } catch (error: any) {
       toast.error(error?.data?.message || 'Failed to sign in with Google.')
     }
+    button.disabled = false
   }
 
   return (
@@ -137,7 +142,10 @@ export function UserAuthForm({
             </FormItem>
           )}
         />
-        <Button className='mt-2' disabled={mutation.isPending}>
+        <Button
+          className='mt-2'
+          disabled={mutation.isPending || mutationGoogle.isPending}
+        >
           {mutation.isPending ? (
             <Loader2 className='animate-spin' />
           ) : (

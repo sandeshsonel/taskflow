@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { signUpUser, signUpWithGoogle } from '@/services/userService'
-import { setUserDetails } from '@/store/slices/authSlice'
+import { setAuthDetails } from '@/store/slices/authSlice'
 import { signInWithPopup } from 'firebase/auth'
 import { useDispatch } from 'react-redux'
 import { toast } from 'sonner'
@@ -68,7 +68,7 @@ export function SignUpForm({
       token: user.token,
       user: user.user,
     }
-    dispatch(setUserDetails(userDetails))
+    dispatch(setAuthDetails(userDetails))
     toast.success('Signed up successfully!')
     navigate({ to: '/' })
   }
@@ -78,7 +78,7 @@ export function SignUpForm({
       token: user.token,
       user: user.user,
     }
-    dispatch(setUserDetails(userDetails))
+    dispatch(setAuthDetails(userDetails))
     toast.success('Signed up successfully!')
     navigate({ to: '/' })
   }
