@@ -1,4 +1,3 @@
-import { formatDistanceToNow } from 'date-fns'
 import { type ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -74,25 +73,25 @@ export const usersColumns: ColumnDef<User>[] = [
     enableHiding: false,
     enableSorting: false,
   },
-  {
-    accessorKey: 'lastLogin',
-    header: ({ column }) => {
-      return <DataTableColumnHeader column={column} title='Last Login' />
-    },
-    cell: ({ row }) => {
-      const status = row.getValue('status')
-      const lastLogin = row.getValue('lastLogin') as Date
-      if ((status === 'active' || status === 'suspended') && lastLogin) {
-        return (
-          <div className='w-fit ps-2 text-nowrap'>
-            {formatDistanceToNow(new Date(lastLogin), { addSuffix: true })}
-          </div>
-        )
-      }
-      return '-'
-    },
-    enableSorting: false,
-  },
+  // {
+  //   accessorKey: 'lastLogin',
+  //   header: ({ column }) => {
+  //     return <DataTableColumnHeader column={column} title='Last Login' />
+  //   },
+  //   cell: ({ row }) => {
+  //     const status = row.getValue('status')
+  //     const lastLogin = row.getValue('lastLogin') as Date
+  //     if ((status === 'active' || status === 'suspended') && lastLogin) {
+  //       return (
+  //         <div className='w-fit ps-2 text-nowrap'>
+  //           {formatDistanceToNow(new Date(lastLogin), { addSuffix: true })}
+  //         </div>
+  //       )
+  //     }
+  //     return '-'
+  //   },
+  //   enableSorting: false,
+  // },
   {
     id: 'actions',
     cell: DataTableRowActions,

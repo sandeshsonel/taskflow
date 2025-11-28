@@ -4,7 +4,6 @@ import {
   ArrowUp,
   Circle,
   CheckCircle,
-  AlertCircle,
   Timer,
   HelpCircle,
   CircleOff,
@@ -68,10 +67,5 @@ export const priorities = [
     label: 'High',
     value: 'high' as const,
     icon: ArrowUp,
-  },
-  {
-    label: 'Critical',
-    value: 'critical' as const,
-    icon: AlertCircle,
   },
 ]

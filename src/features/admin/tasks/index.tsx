@@ -4,6 +4,7 @@ import { getTasksList } from '@/services/taskService'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import Notification from '@/components/notification'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { TasksDialogs } from './components/tasks-dialogs'
@@ -14,7 +15,7 @@ import { TasksTable } from './components/tasks-table'
 export function Tasks() {
   const { search } = useLocation()
   const page = Number(search?.page ?? '1')
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['tasks', page],
     queryFn: () => getTasksList(page),
   })
@@ -23,6 +24,7 @@ export function Tasks() {
     <TasksProvider>
       <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
+          <Notification />
           <ThemeSwitch />
           <ConfigDrawer />
           <ProfileDropdown />
@@ -38,7 +40,7 @@ export function Tasks() {
           </div>
           <TasksPrimaryButtons />
         </div>
-        <TasksTable data={data ?? []} />
+        <TasksTable data={data ?? []} isLoading={isLoading} />
       </Main>
 
       <TasksDialogs />

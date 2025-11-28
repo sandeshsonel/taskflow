@@ -30,6 +30,7 @@ import {
   DialogTitle,
 } from './ui/dialog'
 import { Input } from './ui/input'
+import { Spinner } from './ui/spinner'
 import { Textarea } from './ui/textarea'
 
 const formSchema = z
@@ -63,8 +64,8 @@ type PropTypes = {
 }
 
 type MutationInput =
-  | { isEdit: true; taskId: string; payload: TaskPayload }
-  | { isEdit: false; payload: TaskPayload }
+  | { isEdit: true; taskId: string; adminId?: string; payload: TaskPayload }
+  | { isEdit: false; user: boolean; payload: TaskPayload }
 
 const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
   const router = useRouter()
@@ -77,9 +78,9 @@ const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
   const mutation = useMutation({
     mutationFn: async (input: MutationInput) => {
       if (input.isEdit) {
-        return updateTaskService(input.taskId, input.payload)
+        return updateTaskService(input.taskId, input.payload, input.adminId)
       }
-      return createTaskService(input.payload)
+      return createTaskService(input.payload, input.user)
     },
     onSuccess: () => handleSuccess(),
     onError: () => {},
@@ -137,10 +138,15 @@ const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
         mutation.mutate({
           isEdit,
           taskId: currentRow!._id,
+          adminId: currentRow?.assignBy?._id,
           payload: updatePayload,
         })
       } else {
-        mutation.mutate({ isEdit: false, payload: updatePayload })
+        mutation.mutate({
+          isEdit: false,
+          user: !isAdmin ? true : false,
+          payload: updatePayload,
+        })
       }
     }
   }
@@ -155,7 +161,7 @@ const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
     return (
       data?.map?.((user: any) => ({
         label: `${user.firstName} ${user.lastName}`,
-        value: user._id,
+        value: user.userId,
       })) ?? []
     )
   }, [data])
@@ -310,7 +316,8 @@ const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
           >
             Cancel
           </Button>
-          <Button type='submit' form='user-form'>
+          <Button disabled={mutation.isPending} type='submit' form='user-form'>
+            {mutation.isPending && <Spinner />}
             {isEdit ? 'Update' : 'Create'}
           </Button>
         </DialogFooter>

@@ -3,7 +3,6 @@ import {
   ArrowRight,
   ArrowUp,
   CheckCircle,
-  AlertCircle,
   Timer,
   HelpCircle,
 } from 'lucide-react'
@@ -31,7 +30,7 @@ export const statuses = [
   },
   {
     label: 'In Progress',
-    value: 'in progress' as const,
+    value: 'in-progress' as const,
     icon: Timer,
   },
   {
@@ -56,10 +55,5 @@ export const priorities = [
     label: 'High',
     value: 'high' as const,
     icon: ArrowUp,
-  },
-  {
-    label: 'Critical',
-    value: 'critical' as const,
-    icon: AlertCircle,
   },
 ]

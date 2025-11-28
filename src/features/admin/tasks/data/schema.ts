@@ -9,6 +9,12 @@ export const taskSchema = z.object({
   status: z.string(),
   priority: z.string(),
   assignTo: z.string(),
+  assignBy: z
+    .object({
+      fullName: z.string(),
+      _id: z.string(),
+    })
+    .optional(),
   createdAt: z.string(),
 })
 

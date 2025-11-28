@@ -6,7 +6,7 @@ type AuthLayoutProps = {
 
 export function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className='relative overflow-y-hidden'>
+    <div className='relative'>
       <div className='absolute top-4 left-3 mb-2 ml-2 flex items-center space-x-2'>
         <div className='flex h-8 w-8 items-center justify-center rounded-sm bg-black dark:bg-white'>
           <CircleCheckBig size={18} className='text-white dark:text-black' />

@@ -18,6 +18,7 @@ import { type RootState } from '@/store'
 import { useSelector } from 'react-redux'
 import { cn } from '@/lib/utils'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
+import { Spinner } from '@/components/ui/spinner'
 import {
   Table,
   TableBody,
@@ -30,13 +31,14 @@ import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { priorities, statuses } from '../data/data'
 import { type Task } from '../data/schema'
 import { DataTableBulkActions } from './data-table-bulk-actions'
-import { tasksColumns as columns } from './tasks-columns'
+import { getTaskColumns } from './tasks-columns'
 
 type DataTableProps = {
+  isLoading?: boolean
   data: Task[]
 }
 
-export function TasksTable({ data }: DataTableProps) {
+export function TasksTable({ data, isLoading }: DataTableProps) {
   // Local UI-only states
   const { search } = useLocation()
   const navigate =
@@ -47,6 +49,7 @@ export function TasksTable({ data }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const userDetails = useSelector((state: RootState) => state.auth.user)
+  const isAdmin = userDetails?.role === 'admin'
 
   const { data: adminUsers } = useQuery({
     queryKey: ['admin-users'],
@@ -81,15 +84,22 @@ export function TasksTable({ data }: DataTableProps) {
   const tableData = useMemo(() => {
     return (
       data?.map?.((dItem) => {
-        const assignToDetails =
-          adminUsers?.find?.((user: any) => user._id === dItem.assignTo) ?? {}
+        let assignToDetails = null
+        if (isAdmin) {
+          assignToDetails =
+            adminUsers?.find?.((user: any) => user.userId === dItem.assignTo) ??
+            {}
+        }
+
         return {
           ...dItem,
-          assignToDetails,
+          ...(assignToDetails ? { assignToDetails } : {}),
         }
       }) ?? []
     )
   }, [adminUsers, data])
+
+  const columns = useMemo(() => getTaskColumns({ isAdmin }), [isAdmin])
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -130,7 +140,7 @@ export function TasksTable({ data }: DataTableProps) {
     () =>
       adminUsers?.map?.((assignee: any) => ({
         label: `${assignee.firstName} ${assignee.lastName}`,
-        value: assignee._id,
+        value: assignee.userId,
       })) ?? [],
     [adminUsers]
   )
@@ -138,8 +148,6 @@ export function TasksTable({ data }: DataTableProps) {
   useEffect(() => {
     ensurePageInRange(pageCount)
   }, [pageCount, ensurePageInRange])
-
-  console.log({ pagination })
 
   return (
     <div
@@ -225,12 +233,9 @@ export function TasksTable({ data }: DataTableProps) {
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className='h-24 text-center'
-                >
-                  No results.
+              <TableRow className='flex h-24 w-full items-center justify-center text-center'>
+                <TableCell colSpan={columns.length}>
+                  {isLoading ? <Spinner /> : <span>No results.</span>}
                 </TableCell>
               </TableRow>
             )}

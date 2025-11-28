@@ -4,6 +4,7 @@ import { getAdminUsers } from '@/services/adminUser'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
+import Notification from '@/components/notification'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { UsersDialogs } from './components/users-dialogs'
@@ -25,6 +26,7 @@ export function Users() {
     <UsersProvider>
       <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
+          <Notification />
           <ThemeSwitch />
           <ConfigDrawer />
           <ProfileDropdown />
