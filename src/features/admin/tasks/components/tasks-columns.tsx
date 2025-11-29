@@ -48,11 +48,15 @@ export const getTaskColumns = (options?: {
         const assignTo = (row.original as any)?.assignToDetails
 
         if (assignTo) {
-          return <span>{assignTo.firstName + ' ' + assignTo.lastName}</span>
+          return (
+            <span>
+              {(assignTo?.firstName ?? '') + ' ' + (assignTo?.lastName ?? '')}
+            </span>
+          )
         }
         const assignBy = row.getValue('assignBy') as any
         if (row.getValue('assignBy')) {
-          return <span>{assignBy.fullName}</span>
+          return <span>{assignBy?.fullName ?? '-'}</span>
         }
         return '-'
       },
