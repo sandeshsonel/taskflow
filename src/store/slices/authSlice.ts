@@ -11,6 +11,8 @@ interface User {
   id: string
   email: string
   fullName?: string
+  firstName?: string
+  lastName?: string
   photoURL?: string
   role: 'admin' | 'user'
 }

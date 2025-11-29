@@ -27,7 +27,13 @@ export function ProfileDropdown() {
             <Avatar className='h-8 w-8'>
               <AvatarImage src={userDetails?.photoURL} alt='profile' />
               <AvatarFallback>
-                {getInitialName(userDetails?.fullName ?? '')}
+                {getInitialName(
+                  userDetails?.fullName
+                    ? userDetails?.fullName
+                    : userDetails?.firstName
+                      ? `${userDetails.firstName} ${userDetails.lastName}`
+                      : ''
+                )}
               </AvatarFallback>
             </Avatar>
           </Button>
