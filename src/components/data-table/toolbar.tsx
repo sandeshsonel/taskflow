@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { type Table } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
@@ -7,7 +8,7 @@ import { DataTableFacetedFilter } from './faceted-filter'
 type DataTableToolbarProps<TData> = {
   table: Table<TData>
   searchPlaceholder?: string
-  searchKey?: string
+  searchKey?: string | string[]
   filters?: {
     columnId: string
     title: string
@@ -27,6 +28,11 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const isFiltered =
     table.getState().columnFilters.length > 0 || table.getState().globalFilter
+  const [globalSearch, setGlobalSearch] = useState('')
+
+  const keys = (Array.isArray(searchKey) ? searchKey : [searchKey]).filter(
+    (key): key is string => key !== undefined
+  )
 
   return (
     <div className='flex items-center justify-between'>
@@ -34,12 +40,38 @@ export function DataTableToolbar<TData>({
         {searchKey ? (
           <Input
             placeholder={searchPlaceholder}
-            value={
-              (table.getColumn(searchKey)?.getFilterValue() as string) ?? ''
-            }
-            onChange={(event) =>
-              table.getColumn(searchKey)?.setFilterValue(event.target.value)
-            }
+            value={globalSearch}
+            onChange={(event) => {
+              const value = event.target.value
+              setGlobalSearch(value)
+
+              if (!value.length) {
+                table.resetColumnFilters()
+                setGlobalSearch('')
+                return
+              }
+              for (const key of keys) {
+                const values = table
+                  .getCoreRowModel()
+                  .rows.map((row) => row.getValue(key))
+
+                const isExist = values.some((name) =>
+                  String(name).toLowerCase().includes(value.toLowerCase())
+                )
+
+                table.getColumn(key)?.setFilterValue(value)
+                table.setColumnFilters([
+                  {
+                    id: key,
+                    value,
+                  },
+                ])
+
+                if (isExist) {
+                  break
+                }
+              }
+            }}
             className='h-8 w-[150px] lg:w-[250px]'
           />
         ) : (
@@ -70,6 +102,7 @@ export function DataTableToolbar<TData>({
             onClick={() => {
               table.resetColumnFilters()
               table.setGlobalFilter('')
+              setGlobalSearch('')
             }}
             className='h-8 px-2 lg:px-3'
           >

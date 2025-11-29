@@ -2,23 +2,32 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { LongText } from '@/components/long-text'
 import { callTypes, statusTypes } from '../data/data'
 import { type User } from '../data/schema'
 import { DataTableRowActions } from './data-table-row-actions'
 
 export const usersColumns: ColumnDef<User>[] = [
   {
-    id: 'fullName',
+    accessorKey: 'firstName',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Name' />
+      <DataTableColumnHeader column={column} title='First Name' />
     ),
-    cell: ({ row }) => {
-      const { firstName, lastName } = row.original
-      const fullName = `${firstName} ${lastName}`
-      return <LongText className='max-w-36'>{fullName}</LongText>
-    },
-    meta: { className: 'w-36' },
+    cell: ({ row }) => (
+      <div className='w-fit ps-2 text-nowrap'>{row.getValue('firstName')}</div>
+    ),
+    enableHiding: false,
+    enableSorting: true,
+  },
+  {
+    accessorKey: 'lastName',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Last Name' />
+    ),
+    cell: ({ row }) => (
+      <div className='w-fit ps-2 text-nowrap'>{row.getValue('lastName')}</div>
+    ),
+    enableHiding: false,
+    enableSorting: true,
   },
   {
     accessorKey: 'email',
@@ -28,6 +37,8 @@ export const usersColumns: ColumnDef<User>[] = [
     cell: ({ row }) => (
       <div className='w-fit ps-2 text-nowrap'>{row.getValue('email')}</div>
     ),
+    enableHiding: false,
+    enableSorting: true,
   },
   {
     accessorKey: 'role',

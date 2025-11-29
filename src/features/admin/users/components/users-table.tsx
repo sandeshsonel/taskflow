@@ -47,10 +47,10 @@ export function UsersTable({
 
   const {
     columnFilters,
-    onColumnFiltersChange,
     pagination,
     onPaginationChange,
     ensurePageInRange,
+    onColumnFiltersChange,
   } = useTableUrlState({
     search,
     navigate,
@@ -58,8 +58,8 @@ export function UsersTable({
     globalFilter: { enabled: false },
     columnFilters: [
       // username per-column text filter
-      { columnId: 'fullName', searchKey: 'fullName', type: 'string' },
       { columnId: 'role', searchKey: 'role', type: 'array' },
+      { columnId: 'status', searchKey: 'status', type: 'array' },
     ],
   })
 
@@ -101,8 +101,8 @@ export function UsersTable({
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='Filter users...'
-        searchKey='fullName'
+        searchPlaceholder='Filter by First name or Last name...'
+        searchKey={['firstName', 'lastName']}
         filters={[
           {
             columnId: 'role',
@@ -111,6 +111,15 @@ export function UsersTable({
               { label: 'Admin', value: 'admin' },
               { label: 'Editor', value: 'editor' },
               { label: 'Viewer', value: 'viewer' },
+            ],
+          },
+          {
+            columnId: 'status',
+            title: 'Status',
+            options: [
+              { label: 'Invited', value: 'invited' },
+              { label: 'Active', value: 'active' },
+              { label: 'Suspended', value: 'suspended' },
             ],
           },
         ]}

@@ -158,8 +158,8 @@ export function TasksTable({ data, isLoading }: DataTableProps) {
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='Filter by title'
-        searchKey='title'
+        searchPlaceholder='Filter by Title and Description...'
+        searchKey={['title', 'description']}
         filters={[
           {
             columnId: 'status',
@@ -174,7 +174,7 @@ export function TasksTable({ data, isLoading }: DataTableProps) {
           ...(userDetails?.role === 'admin'
             ? [
                 {
-                  columnId: 'assignee',
+                  columnId: 'assignTo',
                   title: 'Assignee',
                   options: assineeOptions,
                 },
