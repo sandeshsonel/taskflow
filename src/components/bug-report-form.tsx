@@ -1,4 +1,3 @@
-// components/BugReportForm.tsx
 'use client'
 
 import { z } from 'zod'
@@ -16,12 +15,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 
-// components/BugReportForm.tsx
-
-// components/BugReportForm.tsx
-
-// components/BugReportForm.tsx
-
 const bugReportSchema = z.object({
   title: z.string().min(3, 'Bug title is required'),
   description: z.string().min(10, 'Description is required'),
@@ -30,15 +23,12 @@ const bugReportSchema = z.object({
     .optional()
     .refine(
       (file) =>
-        !file ||
-        ['image/png', 'image/jpeg', 'image/gif', 'video/mp4'].includes(
-          file.type
-        ),
-      'File must be PNG, JPG, GIF, or MP4'
+        !file || ['image/png', 'image/jpeg', 'image/gif'].includes(file.type),
+      'File must be PNG, JPG, GIF'
     )
     .refine(
-      (file) => !file || file.size <= 10 * 1024 * 1024,
-      'File is too large (max 10MB)'
+      (file) => !file || file.size <= 1 * 1024 * 1024,
+      'File is too large (max 1MB)'
     ),
 })
 
@@ -67,7 +57,7 @@ export default function BugReportForm() {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className='space-y-6 rounded-xl border bg-white p-6 shadow-sm'
+          className='space-y-6 rounded-xl border p-6 shadow-sm'
         >
           {/* Bug Title */}
           <FormField
@@ -121,7 +111,7 @@ export default function BugReportForm() {
                   />
                 </FormControl>
                 <p className='text-muted-foreground text-sm'>
-                  PNG, JPG, GIF or MP4 (MAX. 10MB)
+                  PNG, JPG or GIF (MAX. 1MB)
                 </p>
                 <FormMessage />
               </FormItem>
@@ -129,7 +119,7 @@ export default function BugReportForm() {
           />
 
           {/* Submit */}
-          <Button type='submit' className='text-md h-12 w-full'>
+          <Button type='submit' className='ml-auto flex items-end justify-end'>
             Submit Bug
           </Button>
         </form>
