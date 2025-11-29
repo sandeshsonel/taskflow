@@ -4,7 +4,8 @@ import { useRef } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
+import { useMutation } from '@tanstack/react-query'
+import { createBugReport } from '@/services/bugReportService'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -16,33 +17,78 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Spinner } from './ui/spinner'
 
-const bugReportSchema = z.object({
-  title: z.string().min(3, 'Bug title is required'),
-  description: z.string().min(10, 'Description is required'),
-  attachments: z
-    .array(
-      z
-        .instanceof(File)
-        .refine(
-          (file) =>
-            ['image/png', 'image/jpeg', 'image/gif'].includes(file.type),
-          'File must be PNG, JPG, GIF'
-        )
-        .refine(
-          (file) => file.size <= 1 * 1024 * 1024,
-          'File too large (max 1MB)'
-        )
-    )
-    .optional(),
-})
+const bugReportSchema = z
+  .object({
+    fullName: z.string().optional(),
+    email: z.string().optional(),
+    title: z
+      .string()
+      .nonempty('Bug title is required.')
+      .min(3, 'Bug title must be at least 3 characters.'),
+
+    description: z
+      .string()
+      .nonempty('Bug description is required.')
+      .min(10, 'Bug description must contain at least 10 characters.'),
+    attachments: z
+      .array(
+        z
+          .instanceof(File)
+          .refine(
+            (file) =>
+              ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'].includes(
+                file.type
+              ),
+            'File must be PNG, JPG, or WEBP'
+          )
+          .refine(
+            (file) => file.size <= 1 * 1024 * 1024,
+            'File too large (max 1MB)'
+          )
+      )
+      .max(5, 'You can upload a maximum of 5 files.')
+      .optional(),
+  })
+  .refine(
+    ({ fullName }) => {
+      if (fullName && fullName?.length > 0) {
+        return /^[a-zA-Z\s]+$/.test(fullName)
+      }
+      return true
+    },
+    {
+      message: 'Please enter a valid name.',
+      path: ['fullName'],
+    }
+  )
+  .refine(
+    ({ email }) => {
+      if (email && email?.length > 0) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      }
+      return true
+    },
+    {
+      message: 'Please enter a valid email.',
+      path: ['email'],
+    }
+  )
 
 type BugReportValues = z.infer<typeof bugReportSchema>
 
 export default function BugReportForm() {
+  const { mutate, isPending } = useMutation({
+    mutationFn: createBugReport,
+    onSuccess: () => handleSuccess(),
+  })
+
   const form = useForm<BugReportValues>({
     resolver: zodResolver(bugReportSchema),
     defaultValues: {
+      fullName: '',
+      email: '',
       title: '',
       description: '',
       attachments: [],
@@ -72,9 +118,25 @@ export default function BugReportForm() {
   }
 
   const onSubmit = (values: BugReportValues) => {
-    toast.success('Bug report submitted successfully!')
+    if (isPending) return
+
+    const formData = new FormData()
+
+    Object.keys(values).forEach((key) => {
+      if (key === 'attachments') {
+        ;(values.attachments ?? []).forEach((file) => {
+          formData.append('files', file)
+        })
+      } else {
+        formData.append(key, (values as Record<string, any>)[key])
+      }
+    })
+
+    mutate(formData)
+  }
+
+  const handleSuccess = () => {
     form.reset()
-    console.log('Submitted bug report:', values)
   }
 
   return (
@@ -89,6 +151,36 @@ export default function BugReportForm() {
           onSubmit={form.handleSubmit(onSubmit)}
           className='space-y-6 rounded-xl border p-6 shadow-sm'
         >
+          <FormField
+            control={form.control}
+            name='fullName'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Name (optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder='John Doe' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='email'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email (optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type='email'
+                    placeholder='johndoe@example.com'
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           {/* Bug Title */}
           <FormField
             control={form.control}
@@ -137,15 +229,16 @@ export default function BugReportForm() {
                   <Input
                     ref={fileInputRef}
                     type='file'
-                    accept='.png,.jpg,.jpeg,.gif'
+                    accept='.png,.jpg,.jpeg,.webp'
                     multiple
                     onChange={handleFilesSelected}
                     className='cursor-pointer'
+                    max={5}
                   />
                 </FormControl>
 
                 <p className='text-muted-foreground text-xs'>
-                  PNG, JPG, GIF – Max 1MB each
+                  PNG, JPG, JPEG or WEBP – Max 1MB each
                 </p>
 
                 {/* File List */}
@@ -177,9 +270,12 @@ export default function BugReportForm() {
           />
 
           {/* Submit Button */}
-          <Button type='submit' className='ml-auto flow-root' size='sm'>
-            Submit Bug
-          </Button>
+          <div className='ml-auto flex items-end justify-end'>
+            <Button type='submit' size='sm' disabled={isPending}>
+              {isPending && <Spinner />}
+              Submit Bug
+            </Button>
+          </div>
         </form>
       </Form>
     </div>
