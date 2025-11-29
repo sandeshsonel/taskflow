@@ -15,7 +15,7 @@ export function TasksDialogs() {
     onSuccess: () => {
       setOpen(null)
       setCurrentRow(null)
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
     },
   })
 

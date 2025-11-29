@@ -36,5 +36,5 @@ export interface TaskPayload {
   description: string
   status: string
   priority: string
-  assignTo: string
+  assignTo: string | null
 }

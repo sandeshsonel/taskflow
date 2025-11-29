@@ -87,8 +87,9 @@ export function TasksTable({ data, isLoading }: DataTableProps) {
         let assignToDetails = null
         if (isAdmin) {
           assignToDetails =
-            adminUsers?.find?.((user: any) => user.userId === dItem.assignTo) ??
-            {}
+            adminUsers?.find?.(
+              (user: any) => (user?.userId ?? user?._id) === dItem.assignTo
+            ) ?? {}
         }
 
         return {

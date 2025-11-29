@@ -142,6 +142,14 @@ const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
           payload: updatePayload,
         })
       } else {
+        const isAssginUser = data?.find(
+          (user: any) => user._id === values.assignTo
+        )
+
+        if (!isAssginUser?.userId) {
+          rest.assignTo = ''
+        }
+
         mutation.mutate({
           isEdit: false,
           user: !isAdmin ? true : false,
@@ -157,14 +165,21 @@ const AddEditTask = ({ open, setOpen, currentRow }: PropTypes) => {
     queryClient.invalidateQueries({ queryKey: ['tasks'] })
   }
 
-  const assignToOptions = useMemo(() => {
-    return (
-      data?.map?.((user: any) => ({
-        label: `${user.firstName} ${user.lastName}`,
-        value: user.userId,
-      })) ?? []
-    )
-  }, [data])
+  const assignToOptions = useMemo(
+    () =>
+      (data ?? []).map(
+        (user: {
+          firstName: string
+          lastName: string
+          userId?: string
+          _id: string
+        }) => ({
+          label: `${user.firstName} ${user.lastName}`,
+          value: user?.userId ?? user?._id,
+        })
+      ),
+    [data]
+  )
 
   return (
     <Dialog

@@ -41,9 +41,19 @@ const formSchema = z
     role: z.string().min(1, 'Role is required.'),
     password: z.string().transform((pwd) => pwd.trim()),
     confirmPassword: z.string().transform((pwd) => pwd.trim()),
-    status: z.string().min(1, 'Status is required.'),
+    status: z.string().optional(),
     isEdit: z.boolean(),
   })
+  .refine(
+    ({ isEdit, status }) => {
+      if (!isEdit) return true
+      return !!status && status.length > 0
+    },
+    {
+      message: 'Status is required.',
+      path: ['status'],
+    }
+  )
   .refine(
     ({ isEdit, password }) => {
       if (isEdit) return true
