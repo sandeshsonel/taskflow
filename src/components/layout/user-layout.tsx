@@ -1,6 +1,6 @@
 import { Link, Outlet } from '@tanstack/react-router'
 import { CircleCheckBig } from 'lucide-react'
-import Notification from '../notification'
+// import Notification from '../notification'
 import { ProfileDropdown } from '../profile-dropdown'
 import { ThemeSwitch } from '../theme-switch'
 import { UserHeader } from '../user/header'
@@ -16,7 +16,7 @@ const UserLayout = ({ children }: { children: React.ReactNode }) => {
           <div className='font-medium'>TaskFlow</div>
         </Link>
         <div className='ms-auto flex items-center space-x-4'>
-          <Notification />
+          {/* <Notification /> */}
           <ThemeSwitch />
           <ProfileDropdown />
         </div>
