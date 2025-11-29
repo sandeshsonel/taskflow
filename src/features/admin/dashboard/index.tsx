@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { RecentActivity } from '@/components/admin/dashboard/RecentActivity'
 import { StatsCards } from '@/components/admin/dashboard/StatsCards'
 import { TasksCompletedChart } from '@/components/admin/dashboard/TasksCompletedChart'
+import BugReport from '@/components/bug-report'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -56,6 +57,7 @@ export function Dashboard() {
       {/* ===== Top Heading ===== */}
       <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
+          <BugReport />
           <Notification />
           <ThemeSwitch />
           <ConfigDrawer />

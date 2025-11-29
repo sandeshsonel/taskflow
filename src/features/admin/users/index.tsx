@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { getAdminUsers } from '@/services/adminUser'
+import BugReport from '@/components/bug-report'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -26,6 +27,7 @@ export function Users() {
     <UsersProvider>
       <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
+          <BugReport />
           <Notification />
           <ThemeSwitch />
           <ConfigDrawer />

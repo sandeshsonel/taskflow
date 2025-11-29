@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useLocation } from '@tanstack/react-router'
 import { getTasksList } from '@/services/taskService'
+import BugReport from '@/components/bug-report'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -24,6 +25,7 @@ export function Tasks() {
     <TasksProvider>
       <Header fixed>
         <div className='ms-auto flex items-center space-x-4'>
+          <BugReport />
           <Notification />
           <ThemeSwitch />
           <ConfigDrawer />
