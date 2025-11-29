@@ -1,8 +1,10 @@
 'use client'
 
+import { useRef } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -18,18 +20,21 @@ import { Textarea } from '@/components/ui/textarea'
 const bugReportSchema = z.object({
   title: z.string().min(3, 'Bug title is required'),
   description: z.string().min(10, 'Description is required'),
-  attachment: z
-    .instanceof(File)
-    .optional()
-    .refine(
-      (file) =>
-        !file || ['image/png', 'image/jpeg', 'image/gif'].includes(file.type),
-      'File must be PNG, JPG, GIF'
+  attachments: z
+    .array(
+      z
+        .instanceof(File)
+        .refine(
+          (file) =>
+            ['image/png', 'image/jpeg', 'image/gif'].includes(file.type),
+          'File must be PNG, JPG, GIF'
+        )
+        .refine(
+          (file) => file.size <= 1 * 1024 * 1024,
+          'File too large (max 1MB)'
+        )
     )
-    .refine(
-      (file) => !file || file.size <= 1 * 1024 * 1024,
-      'File is too large (max 1MB)'
-    ),
+    .optional(),
 })
 
 type BugReportValues = z.infer<typeof bugReportSchema>
@@ -40,10 +45,35 @@ export default function BugReportForm() {
     defaultValues: {
       title: '',
       description: '',
+      attachments: [],
     },
   })
 
+  const attachments = form.watch('attachments') || []
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const handleFilesSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files
+      ? Array.from(event.target.files)
+      : []
+
+    const updated = [...attachments, ...selectedFiles]
+    form.setValue('attachments', updated, { shouldValidate: true })
+
+    // ✅ Reset file input so same file can be uploaded again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const removeFile = (index: number) => {
+    const updated = attachments.filter((_, i) => i !== index)
+    form.setValue('attachments', updated, { shouldValidate: true })
+  }
+
   const onSubmit = (values: BugReportValues) => {
+    toast.success('Bug report submitted successfully!')
+    form.reset()
     console.log('Submitted bug report:', values)
   }
 
@@ -68,7 +98,7 @@ export default function BugReportForm() {
                 <FormLabel>Bug Title *</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="e.g., 'Submit button is not working on the login page'"
+                    placeholder="e.g., 'Submit button not working on login'"
                     {...field}
                   />
                 </FormControl>
@@ -86,7 +116,7 @@ export default function BugReportForm() {
                 <FormLabel>Description *</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder='Please describe the issue in detail. What did you do? What did you expect to happen? What actually happened?'
+                    placeholder='Describe what happened...'
                     className='min-h-[120px]'
                     {...field}
                   />
@@ -96,30 +126,58 @@ export default function BugReportForm() {
             )}
           />
 
-          {/* Attachment */}
+          {/* Attachments */}
           <FormField
             control={form.control}
-            name='attachment'
-            render={({ field }) => (
+            name='attachments'
+            render={() => (
               <FormItem>
-                <FormLabel>Attachment (optional)</FormLabel>
+                <FormLabel>Attachments (optional)</FormLabel>
                 <FormControl>
                   <Input
+                    ref={fileInputRef}
                     type='file'
-                    accept='.png,.jpg,.jpeg,.gif,.mp4'
-                    onChange={(e) => field.onChange(e.target.files?.[0])}
+                    accept='.png,.jpg,.jpeg,.gif'
+                    multiple
+                    onChange={handleFilesSelected}
+                    className='cursor-pointer'
                   />
                 </FormControl>
-                <p className='text-muted-foreground text-sm'>
-                  PNG, JPG or GIF (MAX. 1MB)
+
+                <p className='text-muted-foreground text-xs'>
+                  PNG, JPG, GIF – Max 1MB each
                 </p>
+
+                {/* File List */}
+                {attachments.length > 0 && (
+                  <ul className='mt-3 space-y-2 text-sm'>
+                    {attachments.map((file, idx) => (
+                      <li
+                        key={idx}
+                        className='flex items-center justify-between rounded border p-2'
+                      >
+                        {file.name}
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='ghost'
+                          className='text-xs text-red-500 hover:underline'
+                          onClick={() => removeFile(idx)}
+                        >
+                          Remove
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Submit */}
-          <Button type='submit' className='ml-auto flex items-end justify-end'>
+          {/* Submit Button */}
+          <Button type='submit' className='ml-auto flow-root' size='sm'>
             Submit Bug
           </Button>
         </form>
