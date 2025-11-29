@@ -1,4 +1,7 @@
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
+import { getDashboardStats } from '@/services/adminUser'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { RecentActivity } from '@/components/admin/dashboard/RecentActivity'
@@ -13,6 +16,41 @@ import { ThemeSwitch } from '@/components/theme-switch'
 
 export function Dashboard() {
   const navigate = useNavigate()
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: getDashboardStats,
+  })
+
+  const stats = useMemo(() => {
+    return [
+      {
+        label: 'Total Users',
+        value: String(data?.totalUsers ?? 0),
+        change: `${data?.totalUsersChange ?? 0}%`,
+        positive: (data?.totalUsersChange ?? 0) >= 0,
+      },
+      {
+        label: 'Active Tasks',
+        value: data?.activeTasks ?? 0,
+        change: `${data?.activeTasksChange ?? 0}%`,
+        positive: (data?.activeTasksChange ?? 0) >= 0,
+      },
+      {
+        label: 'Completed This Week',
+        value: data?.completedThisWeek ?? 0,
+        change: `${data?.completedThisWeekChange ?? 0}%`,
+        positive: (data?.completedThisWeekChange ?? 0) >= 0,
+      },
+      {
+        label: 'New Sign-ups',
+        value: data?.newSignups ?? 0,
+        change: `${data?.newSignupsChange ?? 0}%`,
+        positive: (data?.newSignupsChange ?? 0) >= 0,
+      },
+    ]
+  }, [data])
+
   return (
     <>
       {/* ===== Top Heading ===== */}
@@ -41,7 +79,7 @@ export function Dashboard() {
         </div>
         <div className='space-y-6'>
           {/* Stats Row */}
-          <StatsCards />
+          <StatsCards stats={stats} loading={isLoading} />
 
           {/* Chart + Activity Grid */}
           <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>

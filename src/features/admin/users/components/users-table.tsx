@@ -13,6 +13,7 @@ import {
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { type NavigateFn, useTableUrlState } from '@/hooks/use-table-url-state'
+import { Spinner } from '@/components/ui/spinner'
 import {
   Table,
   TableBody,
@@ -30,9 +31,15 @@ type DataTableProps = {
   data: User[]
   search: Record<string, unknown>
   navigate: NavigateFn
+  isLoading?: boolean
 }
 
-export function UsersTable({ data, search, navigate }: DataTableProps) {
+export function UsersTable({
+  data,
+  search,
+  navigate,
+  isLoading,
+}: DataTableProps) {
   // Local UI-only states
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -165,9 +172,15 @@ export function UsersTable({ data, search, navigate }: DataTableProps) {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className='h-24 text-center'
+                  className='h-24 text-center align-middle'
                 >
-                  No results.
+                  {isLoading ? (
+                    <div className='flex w-full justify-center'>
+                      <Spinner />
+                    </div>
+                  ) : (
+                    <span>No results.</span>
+                  )}
                 </TableCell>
               </TableRow>
             )}

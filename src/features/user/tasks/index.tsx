@@ -8,13 +8,13 @@ export function Tasks() {
   const { search } = useLocation()
 
   const page = Number(search?.page ?? '1')
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['tasks', page],
     queryFn: () => getTasksList(page),
   })
   return (
     <>
-      <TasksTable data={data} />
+      <TasksTable data={data} isLoading={isLoading} />
       <TasksDialogs />
     </>
   )

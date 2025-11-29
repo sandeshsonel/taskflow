@@ -12,6 +12,16 @@ export const getAdminUsers = async () => {
   }
 }
 
+export const getDashboardStats = async () => {
+  try {
+    const response = await api.get('/api/v1/admin/stats')
+    return response.data?.data ?? {}
+  } catch (error: any) {
+    toast.error(error.response.data.message)
+    throw new Error(error.response.data.message)
+  }
+}
+
 export const createUserService = async (payload: AdminUserPayload) => {
   try {
     const response = await api.post('/api/v1/admin/users', payload)

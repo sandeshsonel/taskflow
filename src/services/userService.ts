@@ -1,3 +1,5 @@
+import { store } from '@/store'
+import { logout } from '@/store/slices/authSlice'
 import { toast } from 'sonner'
 import type { SignInUserPayload, SignUpUserPayload } from '../types'
 import { api } from './api'
@@ -7,6 +9,14 @@ export const getProfileDetails = async () => {
     const response = await api.get('/api/v1/profile-details')
     return response.data
   } catch (error: any) {
+    if (error.response.status === 401) {
+      setTimeout(() => {
+        store.dispatch(logout())
+        localStorage.clear()
+        const currentPath = location.href
+        window.location.href = `/sign-in?redirect=${currentPath}`
+      }, 1200)
+    }
     toast.error(error.response.data.message)
     throw new Error(error.response.data.message)
   }

@@ -233,9 +233,18 @@ export function TasksTable({ data, isLoading }: DataTableProps) {
                 </TableRow>
               ))
             ) : (
-              <TableRow className='flex h-24 w-full items-center justify-center text-center'>
-                <TableCell colSpan={columns.length}>
-                  {isLoading ? <Spinner /> : <span>No results.</span>}
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className='h-24 text-center align-middle'
+                >
+                  {isLoading ? (
+                    <div className='flex w-full justify-center'>
+                      <Spinner />
+                    </div>
+                  ) : (
+                    <span>No results.</span>
+                  )}
                 </TableCell>
               </TableRow>
             )}

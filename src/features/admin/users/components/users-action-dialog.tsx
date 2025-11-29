@@ -41,6 +41,7 @@ const formSchema = z
     role: z.string().min(1, 'Role is required.'),
     password: z.string().transform((pwd) => pwd.trim()),
     confirmPassword: z.string().transform((pwd) => pwd.trim()),
+    status: z.string().min(1, 'Status is required.'),
     isEdit: z.boolean(),
   })
   .refine(
@@ -136,6 +137,7 @@ export function UsersActionDialog({
           role: currentRow!.role,
           password: '',
           confirmPassword: '',
+          status: currentRow!.status,
           isEdit,
         }
       : {
@@ -304,6 +306,30 @@ export function UsersActionDialog({
                               {...field}
                             />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+                {isEdit && currentRow.status !== 'invited' && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name='status'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Status</FormLabel>
+                          <SelectDropdown
+                            className='w-full'
+                            defaultValue={field.value}
+                            onValueChange={field.onChange}
+                            placeholder='Select dropdown'
+                            items={[
+                              { label: 'Active', value: 'active' },
+                              { label: 'Suspended', value: 'suspended' },
+                            ]}
+                          />
                           <FormMessage />
                         </FormItem>
                       )}

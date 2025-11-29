@@ -17,7 +17,7 @@ const route = getRouteApi('/_authenticated/admin/users/')
 export function Users() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: getAdminUsers,
   })
@@ -41,7 +41,12 @@ export function Users() {
           </div>
           <UsersPrimaryButtons />
         </div>
-        <UsersTable data={data || []} search={search} navigate={navigate} />
+        <UsersTable
+          data={data || []}
+          search={search}
+          navigate={navigate}
+          isLoading={isLoading}
+        />
       </Main>
 
       <UsersDialogs />
