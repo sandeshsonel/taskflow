@@ -122,5 +122,22 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script type="module">
+      if (import.meta.env.PROD && import.meta.env.VITE_GA_ID) {
+        const id = import.meta.env.VITE_GA_ID
+
+        const ga = document.createElement('script')
+        ga.async = true
+        ga.src = `https://www.googletagmanager.com/gtag/js?id=${id}`
+        document.head.appendChild(ga)
+
+        window.dataLayer = window.dataLayer || []
+        function gtag() {
+          dataLayer.push(arguments)
+        }
+        gtag('js', new Date())
+        gtag('config', id)
+      }
+    </script>
   </body>
 </html>
